@@ -51,6 +51,35 @@
 </head>
 <body class="min-h-screen pb-20">
 
+    <div id="apiModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden no-print">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 border border-slate-200">
+            <div class="flex items-center gap-3 mb-4 text-indigo-600">
+                <i data-lucide="key" class="w-8 h-8"></i>
+                <h2 class="text-2xl font-bold">API-Key benötigt</h2>
+            </div>
+            <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                Um die KI-Funktionen zu nutzen, wird ein <strong>Mistral API-Key</strong> benötigt. Dieser wird nur lokal in deinem Browser gespeichert.
+            </p>
+            
+            <div class="bg-indigo-50 p-4 rounded-2xl mb-6 text-xs text-indigo-800 space-y-2 border border-indigo-100">
+                <p class="font-bold uppercase tracking-wider">So geht's:</p>
+                <ol class="list-decimal ml-4 space-y-1">
+                    <li>Konto auf <a href="https://console.mistral.ai/" target="_blank" class="underline font-bold">console.mistral.ai</a> erstellen.</li>
+                    <li>API-Key generieren und kopieren.</li>
+                    <li>Hier einfügen und loslegen.</li>
+                </ol>
+            </div>
+
+            <input type="password" id="apiInput" placeholder="Dein Mistral API-Key" 
+                class="w-full p-4 bg-slate-100 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none mb-4 transition-all">
+            
+            <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
+                Schlüssel speichern & Starten
+            </button>
+         
+        </div>
+    </div>
+
     <header class="bg-indigo-800 text-white p-6 shadow-xl mb-8 sticky top-0 z-50 no-print">
         <div class="max-w-2xl mx-auto flex justify-between items-center">
             <div>
@@ -60,20 +89,24 @@
                 <p class="text-indigo-200 text-[10px] uppercase tracking-widest">Weseloh AI Edition</p>
             </div>
             <div class="flex gap-2">
-    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
-    
-    <button onclick="document.getElementById('importFile').click()" title="Daten laden" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
-        <i data-lucide="upload" class="w-5 h-5"></i>
-    </button>
+                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
+                
+                <button onclick="document.getElementById('importFile').click()" title="Daten laden" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                    <i data-lucide="upload" class="w-5 h-5"></i>
+                </button>
 
-    <button onclick="exportJSON()" title="Daten sichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
-        <i data-lucide="download" class="w-5 h-5"></i>
-    </button>
-    
-    <button onclick="window.print()" title="Als PDF speichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
-        <i data-lucide="file-text" class="w-5 h-5"></i>
-    </button>
-</div>
+                <button onclick="exportJSON()" title="Daten sichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                </button>
+                
+                <button onclick="window.print()" title="Als PDF speichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </button>
+                
+                <button onclick="resetApiKey(true)" title="API Key ändern" class="p-2 bg-red-800 hover:bg-red-700 rounded-lg transition-colors">
+                    <i data-lucide="key" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -116,8 +149,36 @@
     <script>
         lucide.createIcons();
 
-        // === HIER DEINEN MISTRAL API KEY EINTRAGEN ===
-        const MISTRAL_API_KEY = "HIER EINTRAGEN";
+        // === KEY-MANAGEMENT LOGIK (NEU) ===
+        function getApiKey() {
+            return localStorage.getItem('mistral_api_key');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiInput').value.trim();
+            if(key.length > 10) {
+                localStorage.setItem('mistral_api_key', key);
+                document.getElementById('apiModal').style.display = 'none';
+                lucide.createIcons();
+            } else {
+                alert("Bitte gib einen gültigen Mistral-Key ein.");
+            }
+        }
+
+        function resetApiKey(confirmIt = false) {
+            if(!confirmIt || confirm("Möchtest du den gespeicherten API-Key wirklich löschen?")) {
+                localStorage.removeItem('mistral_api_key');
+                location.reload();
+            }
+        }
+
+        // Prüfen beim Start
+        window.addEventListener('DOMContentLoaded', () => {
+            if(!getApiKey()) {
+                document.getElementById('apiModal').classList.remove('hidden');
+                document.getElementById('apiModal').style.display = 'flex';
+            }
+        });
 
         let events = [];
 
@@ -131,8 +192,14 @@
 
         async function extractEvents() {
             const text = document.getElementById('transcriptInput').value;
+            const currentKey = getApiKey();
+
             if(!text.trim()) return alert("Bitte Text einfügen!");
-            if(MISTRAL_API_KEY.includes("HIER")) return alert("Bitte API Key eintragen!");
+            if(!currentKey) {
+                document.getElementById('apiModal').classList.remove('hidden');
+                document.getElementById('apiModal').style.display = 'flex';
+                return;
+            }
 
             const btn = document.getElementById('magicBtn');
             btn.disabled = true;
@@ -143,7 +210,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${MISTRAL_API_KEY}`
+                        'Authorization': `Bearer ${currentKey}`
                     },
                     body: JSON.stringify({
                         model: "mistral-small-latest",
@@ -154,6 +221,8 @@
                     })
                 });
 
+                if (!response.ok) throw new Error("API-Key ungültig oder Limit erreicht.");
+
                 const data = await response.json();
                 let aiResponse = data.choices[0].message.content;
                 const jsonStart = aiResponse.indexOf('[');
@@ -162,14 +231,14 @@
 
                 const newEvents = extracted.map(item => ({ id: Math.random(), ...item }));
                 
-                // Hinzufügen und Sortieren
                 events = [...events, ...newEvents];
                 sortEvents();
                 renderTimeline();
-                document.getElementById('transcriptInput').value = ""; // Textfeld leeren
+                document.getElementById('transcriptInput').value = "";
 
             } catch (error) {
                 alert("Fehler: " + error.message);
+                if(error.message.includes("Key")) resetApiKey();
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="wand-2" class="w-5 h-5"></i> KI Zeitstrahl ergänzen`;
@@ -214,35 +283,28 @@
             dl.setAttribute("download", "biografie.json");
             dl.click();
         }
-function importJSON(event) {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedEvents = JSON.parse(e.target.result);
-            
-            // Validierung: Ist es wirklich ein Array?
-            if (Array.isArray(importedEvents)) {
-                // Bestehende Events ersetzen oder ergänzen? 
-                // Hier ersetzen wir sie (cleaner):
-                events = importedEvents;
-                
-                sortEvents();
-                renderTimeline();
-                alert("Daten erfolgreich geladen!");
-            } else {
-                alert("Ungültiges Dateiformat.");
-            }
-        } catch (err) {
-            alert("Fehler beim Lesen der Datei: " + err.message);
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedEvents = JSON.parse(e.target.result);
+                    if (Array.isArray(importedEvents)) {
+                        events = importedEvents;
+                        sortEvents();
+                        renderTimeline();
+                        alert("Daten erfolgreich geladen!");
+                    }
+                } catch (err) {
+                    alert("Fehler beim Lesen der Datei.");
+                }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
         }
-        // Input zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
-        event.target.value = ''; 
-    };
-    reader.readAsText(file);
-}
 
         function renderTimeline() {
             const container = document.getElementById('eventList');
