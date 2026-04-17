@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioGraph Pro eine Weseloh Produkt- Biografie-Arbeit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Timeline Styling */
+        .timeline-line {
+            position: absolute;
+            left: 24px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #cbd5e1;
+            z-index: 0;
+        }
+        .event-dot {
+            position: absolute;
+            left: 17px;
+            top: 26px;
+            width: 18px;
+            height: 18px;
+            background: #4f46e5;
+            border-radius: 50%;
+            border: 4px solid white;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* PDF / Druck Optimierung */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .bg-white { border: none !important; box-shadow: none !important; }
+            .timeline-line { background: #000 !important; -webkit-print-color-adjust: exact; }
+            .event-dot { background: #000 !important; -webkit-print-color-adjust: exact; border-color: #000 !important; }
+            textarea, input { border: none !important; resize: none !important; overflow: visible !important; }
+            main { max-width: 100% !important; margin: 0 !important; }
+        }
+
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <header class="bg-indigo-800 text-white p-6 shadow-xl mb-8 sticky top-0 z-50 no-print">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2 italic">
+                    <i data-lucide="award"></i> BioGraph Pro - Weseloh 
+                </h1>
+                <p class="text-indigo-200 text-xs font-medium uppercase tracking-widest">Biografie-Analyse & Dokumentation</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportJSON()" title="Daten sichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                </button>
+                <button onclick="window.print()" title="Als PDF speichern" class="p-2 bg-indigo-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4">
+        
+        <div class="bg-white rounded-3xl shadow-xl p-6 mb-10 border border-slate-100 no-print">
+            <div class="flex items-center gap-2 mb-4 text-indigo-800">
+                <i data-lucide="text-quote" class="w-5 h-5"></i>
+                <h3 class="font-bold">Interview-Transkript</h3>
+            </div>
+            <textarea id="transcriptInput" rows="6" 
+                class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 focus:bg-white focus:outline-none text-sm transition-all" 
+                placeholder="Kopiere hier den Text des Interviews hinein..."></textarea>
+            
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button onclick="extractEvents()" class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg hover:-translate-y-1">
+                    <i data-lucide="wand-2" class="w-5 h-5"></i> Zeitstrahl generieren
+                </button>
+                <button onclick="clearAll()" class="flex-1 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="eraser" class="w-5 h-5"></i> Leer machen
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mb-8 px-2">
+            <div>
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Lebens-Zeitstrahl</h2>
+                <div id="countBadge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">0 EREIGNISSE</div>
+            </div>
+            <button onclick="addManualEvent()" class="no-print bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md transition-all active:scale-90">
+                <i data-lucide="plus" class="w-5 h-5"></i> Hinzufügen
+            </button>
+        </div>
+
+        <div id="timelineContainer" class="relative">
+            <div id="timelineLine" class="timeline-line hidden"></div>
+            <div id="eventList" class="space-y-6">
+                <div id="emptyState" class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                    <i data-lucide="map" class="w-16 h-16 mx-auto mb-4 opacity-10"></i>
+                    <p class="font-medium">Noch keine Biografie-Daten erkannt.</p>
+                    <p class="text-xs opacity-60">Fügen Sie oben ein Transkript ein oder nutzen Sie den "Hinzufügen" Button.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-20 text-center text-slate-400 text-xs no-print">
+        <p> Weseloh - BioGraph Pro | Werkzeug für die Soziale Arbeit</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        let events = [];
+
+        function extractEvents() {
+            const text = document.getElementById('transcriptInput').value;
+            if(!text.trim()) return;
+
+            const yearRegex = /\b(19|20)\d{2}\b/g;
+            const matches = [...text.matchAll(yearRegex)];
+            
+            const newEvents = matches.map(match => {
+                const year = match[0];
+                const index = match.index;
+                let context = text.substring(index + year.length).trim();
+                
+                // Reinigung des Textes
+                context = context.replace(/^[:,\-\s\.istwar]+/, '');
+                let endOfSentence = context.search(/[.!?;]/);
+                let description = (endOfSentence !== -1 && endOfSentence < 150) 
+                                  ? context.substring(0, endOfSentence).trim() 
+                                  : context.substring(0, 100).trim();
+
+                return {
+                    id: Math.random(),
+                    year: year,
+                    description: description.charAt(0).toUpperCase() + description.slice(1)
+                };
+            });
+
+            // Duplikate (Jahr + Beschreibung identisch) entfernen
+            const filtered = newEvents.filter((v, i, a) => 
+                a.findIndex(t => (t.year === v.year && t.description === v.description)) === i
+            );
+
+            events = [...events, ...filtered].sort((a, b) => parseInt(a.year) - parseInt(b.year));
+            renderTimeline();
+        }
+
+        function addManualEvent() {
+            const newEvent = {
+                id: Date.now(),
+                year: new Date().getFullYear(),
+                description: "Ereignis hier beschreiben..."
+            };
+            events.push(newEvent);
+            events.sort((a, b) => parseInt(a.year) - parseInt(b.year));
+            renderTimeline();
+        }
+
+        function deleteEvent(id) {
+            events = events.filter(e => e.id !== id);
+            renderTimeline();
+        }
+
+        function updateEvent(id, field, value) {
+            const event = events.find(e => e.id === id);
+            if (event) {
+                event[field] = value;
+                if (field === 'year') {
+                    events.sort((a, b) => parseInt(a.year) - parseInt(b.year));
+                }
+            }
+        }
+
+        function clearAll() {
+            if(confirm("Alle Daten unwiderruflich löschen?")) {
+                events = [];
+                document.getElementById('transcriptInput').value = "";
+                renderTimeline();
+            }
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(events, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "biografie_export.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('eventList');
+            const line = document.getElementById('timelineLine');
+            const emptyState = document.getElementById('emptyState');
+            const badge = document.getElementById('countBadge');
+            
+            container.innerHTML = '';
+            badge.innerText = `${events.length} EREIGNISSE`;
+            
+            if (events.length === 0) {
+                container.appendChild(emptyState);
+                line.classList.add('hidden');
+            } else {
+                line.classList.remove('hidden');
+                events.forEach((event) => {
+                    const eventEl = document.createElement('div');
+                    eventEl.className = 'relative pl-14 animate-pop';
+                    eventEl.innerHTML = `
+                        <div class="event-dot"></div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 group hover:border-indigo-400 transition-all">
+                            <div class="flex justify-between items-start mb-2">
+                                <input type="number" 
+                                    value="${event.year}" 
+                                    onchange="updateEvent(${event.id}, 'year', this.value)"
+                                    class="font-black text-indigo-700 text-xl bg-transparent border-none focus:ring-0 w-24 p-0"
+                                >
+                                <button onclick="deleteEvent(${event.id})" class="no-print text-slate-300 hover:text-red-500 transition-colors">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <textarea 
+                                oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                                onchange="updateEvent(${event.id}, 'description', this.value)"
+                                class="text-slate-700 text-sm w-full border-none focus:ring-0 p-0 resize-none bg-transparent leading-relaxed"
+                                rows="1"
+                            >${event.description}</textarea>
+                        </div>
+                    `;
+                    container.appendChild(eventEl);
+                    // Adjust height of textareas
+                    const ta = eventEl.querySelector('textarea');
+                    ta.style.height = ta.scrollHeight + "px";
+                });
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
