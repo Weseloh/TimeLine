@@ -1,3 +1,17 @@
+> [!CAUTION]
+> ### DATENSCHUTZ-WARNHINWEIS
+> Dieses Tool dient dem Demonstrationszweck. Es übermittelt Texte an die Mistral AI Server (Standort EU/Frankreich). 
+> **Es dürfen KEINE echten Klient:innendaten eingegeben werden!**
+> 
+> Bitte nutzen Sie für Tests ausschließlich **fiktive** Interview-Transkripte. Die Nutzung erfolgt im Rahmen eines Lehrprojekts zu Forschungszwecken. Ein fiktives Beispiel-Transcript
+---
+> [!TIP]
+>## Schnellstart 
+>1. Beispiel-Transcript öffen [Beispiel-Transkript.txt](./Beispiel%20Transcript.txt)
+>2. Textinhalt kopieren
+>3.  [Tool starten](https://weseloh.github.io/TimeLine/)
+>4. Text einfügen und **Zeitstrahl erstellen**
+---
 # BioGraph Pro
 ### Ein KI-generiertes Werkzeug für die digitale Biografiearbeit
 
