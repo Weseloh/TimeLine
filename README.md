@@ -27,10 +27,9 @@ Im Sinne des Vibe Codings wurde das Tool Schritt für Schritt weiterentwickelt:
 - **Daten hinzufügen:** Eine manuelle Weiterführung des Zeitstrahls durch das Hinzufügen weiterer Ereignisse wurde implementiert.
 - **Import-Button:** Neben dem Datei-Export als `.json` wurde ein Re-Import gespeicherter Zeitstrahlen ermöglicht, um die Arbeit fortzusetzen.
 - **Titel der Ereignisse:** Es besteht nun die Möglichkeit mit Eingabe eines eigenen API-Key's die Titel präziser auszugeben.
+- **API-Key** Anleitung, Abfrage und Möglichkeit des Löschens des API-Key's eingebaut.
 ## Ausstehende Weiterentwicklungen
-- **Abfragung eines eigenen API-Key's**
-- **Anleitung zur Generierung eines API-Key's**
-- **Löschfunktion des API-Key's**
+- **N.N.**
 
 ---
 
