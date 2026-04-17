@@ -22,12 +22,15 @@ Der Dozent ist Sozialarbeiter, kein Informatiker. Der Code konnte also keiner um
 - **Offline-First:** Läuft als einfache HTML-Datei in jedem Browser.
   
 ## Iterative Weiterentwicklung (Problemlösungen)
-Im Sinne des Vibe Codings wurde das Tool Schritt für Schritt optimiert:
+Im Sinne des Vibe Codings wurde das Tool Schritt für Schritt weiterentwickelt:
 - **Daten bearbeiten:** Es wurde nachträglich eine Funktion zur Bearbeitung der Jahreszahlen und Ereignistexte eingebaut.
 - **Daten hinzufügen:** Eine manuelle Weiterführung des Zeitstrahls durch das Hinzufügen weiterer Ereignisse wurde implementiert.
+- **Import-Button:** Neben dem Datei-Export als `.json` wurde ein Re-Import gespeicherter Zeitstrahlen ermöglicht, um die Arbeit fortzusetzen.
+- **Titel der Ereignisse:** Es besteht nun die Möglichkeit mit Eingabe eines eigenen API-Key's die Titel präziser auszugeben.
 ## Ausstehende Weiterentwicklungen
-- **Import-Button:** Neben dem Datei-Export als `.json` soll ein Re-Import gespeicherter Zeitstrahlen ermöglicht werden, um die Arbeit fortzusetzen.
-- **Titel der Ereignisse:** Die automatische Betitelung ist teilweise noch unpräzise; hier wird aktuell nach einer optimierten Logik zur Darstellung gesucht.
+- **Abfragung eines eigenen API-Key's**
+- **Anleitung zur Generierung eines API-Key's**
+- **Löschfunktion des API-Key's**
 
 ---
 
